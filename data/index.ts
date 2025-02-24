@@ -76,15 +76,15 @@ export const projects = [
     des: "A custom clothes customizing app that simples your clothing designing using Three.js",
     img: "/p1.svg",
     iconLists: ["/re.svg", "/tail.svg", "/ts.svg", "/three.svg", "/fm.svg"],
-    link: "/ui.earth.com",
+    link: "https://aiclothescustomizer.netlify.app/",
   },
   {
     id: 2,
-    title: "Scrapping AI",
+    title: "Scrapping AI Web-App",
     des: "Scrap and generate images with help of Ai without any copyright issues",
     img: "/p2.svg",
     iconLists: ["/next.svg", "/tail.svg", "/ts.svg", "/stream.svg", "/c.svg"],
-    link: "/ui.yoom.com",
+    link: "https://image-scrapper-app.vercel.app/",
   },
   {
     id: 3,
@@ -92,15 +92,15 @@ export const projects = [
     des: "A streaming service where you can stream the videos of your choice",
     img: "/p3.svg",
     iconLists: ["/re.svg", "/tail.svg", "/ts.svg", "/three.svg", "/c.svg"],
-    link: "/ui.aiimg.com",
+    link: "https://snaptube-inky.vercel.app/",
   },
   {
     id: 4,
-    title: "Music-App",
-    des: "A cool music app built from scratch to listen music of your choice",
+    title: "Full-stack E-com Site",
+    des: "A animated E-com site used by an company for their Prodcuts store",
     img: "/p4.svg",
     iconLists: ["/re.svg", "/tail.svg", "/ts.svg", "/three.svg", "/gsap.svg"],
-    link: "/ui.apple.com",
+    link: "https://snappee.store",
   },
 ];
 
@@ -199,13 +199,16 @@ export const socialMedia = [
   {
     id: 1,
     img: "/git.svg",
+    link: "https://github.com/akashmali23",
   },
   {
     id: 2,
     img: "/twit.svg",
+    link: "https://www.instagram.com/akasxshh/",
   },
   {
     id: 3,
     img: "/link.svg",
+    link: "https://www.linkedin.com/in/akash-mali-181a6b221/",
   },
 ];
