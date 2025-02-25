@@ -1,8 +1,9 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 
-export const BackgroundGradientAnimation = ({
+const BackgroundGradientAnimation = ({
   gradientBackgroundStart = "rgb(108, 0, 162)",
   gradientBackgroundEnd = "rgb(0, 17, 82)",
   firstColor = "18, 113, 255",
@@ -59,7 +60,18 @@ export const BackgroundGradientAnimation = ({
       document.body.style.setProperty("--size", size);
       document.body.style.setProperty("--blending-value", blendingValue);
     }
-  }, []);
+  }, [
+    gradientBackgroundStart,
+    gradientBackgroundEnd,
+    firstColor,
+    secondColor,
+    thirdColor,
+    fourthColor,
+    fifthColor,
+    pointerColor,
+    size,
+    blendingValue,
+  ]);
 
   useEffect(() => {
     function move() {
@@ -74,7 +86,7 @@ export const BackgroundGradientAnimation = ({
     }
 
     move();
-  }, [tgX, tgY]);
+  }, [tgX, tgY, curX, curY]);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (interactiveRef.current) {
@@ -126,3 +138,7 @@ export const BackgroundGradientAnimation = ({
     </div>
   );
 };
+
+export default dynamic(() => Promise.resolve(BackgroundGradientAnimation), {
+  ssr: false,
+});
