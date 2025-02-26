@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
 import ThreeGlobe from "three-globe";
-import { useThree, Canvas, extend } from "@react-three/fiber";
+import { Canvas, extend } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import countries from "@/data/globe.json";
 
@@ -82,7 +82,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
   return <>{globeData && globeRef.current && <primitive object={globeRef.current} />}</>;
 }
 
-const World = (props: WorldProps) => {
+export const World = (props: WorldProps) => {
   const { globeConfig } = props;
   return (
     <Canvas camera={{ fov: 50, aspect, near: 180, far: 1800, position: [0, 0, cameraZ] }}>
