@@ -1,4 +1,4 @@
-"use client"; // ✅ Force this file to run only on the client
+"use client";
 
 import { navItems } from "@/data";
 
