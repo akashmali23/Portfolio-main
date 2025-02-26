@@ -1,11 +1,9 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
-import dynamic from "next/dynamic";
+import ThreeGlobe from "three-globe";
 import { useThree, Object3DNode, Canvas, extend } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import ThreeGlobe from "three-globe";
 import countries from "@/data/globe.json";
 
 declare module "@react-three/fiber" {
@@ -63,7 +61,7 @@ interface WorldProps {
 
 let numbersOfRings = [0];
 
-function Globe({ globeConfig, data }: WorldProps) {
+export function Globe({ globeConfig, data }: WorldProps) {
   const [globeData, setGlobeData] = useState<
     | {
         size: number;
@@ -95,11 +93,14 @@ function Globe({ globeConfig, data }: WorldProps) {
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined" && globeRef.current) {
-      _buildData();
-      _buildMaterial();
+    if (typeof window === "undefined") return; // Prevent SSR errors
+
+    if (!globeRef.current) {
+      globeRef.current = new ThreeGlobe();
     }
-  }, [globeRef.current]);
+    _buildData();
+    _buildMaterial();
+  }, []);
 
   const _buildMaterial = () => {
     if (!globeRef.current) return;
@@ -117,62 +118,46 @@ function Globe({ globeConfig, data }: WorldProps) {
   };
 
   const _buildData = () => {
-    const arcs = data;
-    let points = [];
-    for (let i = 0; i < arcs.length; i++) {
-      const arc = arcs[i];
-      const rgb = hexToRgb(arc.color) as { r: number; g: number; b: number };
-      points.push({
-        size: defaultProps.pointSize,
-        order: arc.order,
-        color: (t: number) => `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${1 - t})`,
-        lat: arc.startLat,
-        lng: arc.startLng,
-      });
-      points.push({
-        size: defaultProps.pointSize,
-        order: arc.order,
-        color: (t: number) => `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${1 - t})`,
-        lat: arc.endLat,
-        lng: arc.endLng,
-      });
-    }
+    if (!globeRef.current) return;
 
-    // Remove duplicates
-    const filteredPoints = points.filter(
-      (v, i, a) =>
-        a.findIndex((v2) =>
-          ["lat", "lng"].every(
-            (k) => v2[k as "lat" | "lng"] === v[k as "lat" | "lng"]
-          )
-        ) === i
-    );
+    globeRef.current
+      .hexPolygonsData(countries.features)
+      .hexPolygonResolution(3)
+      .hexPolygonMargin(0.7)
+      .showAtmosphere(defaultProps.showAtmosphere)
+      .atmosphereColor(defaultProps.atmosphereColor)
+      .atmosphereAltitude(defaultProps.atmosphereAltitude)
+      .hexPolygonColor(() => defaultProps.polygonColor);
 
-    setGlobeData(filteredPoints);
+    startAnimation();
   };
 
-  return (
-    <>
-      {typeof window !== "undefined" && <threeGlobe ref={globeRef} />}
-    </>
-  );
+  const startAnimation = () => {
+    if (!globeRef.current) return;
+
+    globeRef.current
+      .arcsData(data)
+      .arcDashAnimateTime(defaultProps.arcTime);
+
+    globeRef.current.pointsData(data).pointsMerge(true).pointAltitude(0.0);
+  };
+
+  return <>{globeRef.current && <primitive object={globeRef.current} />}</>;
 }
 
-function WebGLRendererConfig() {
+export function WebGLRendererConfig() {
   const { gl, size } = useThree();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      gl.setPixelRatio(window.devicePixelRatio);
-      gl.setSize(size.width, size.height);
-      gl.setClearColor(0xffaaff, 0);
-    }
+    gl.setPixelRatio(window.devicePixelRatio);
+    gl.setSize(size.width, size.height);
+    gl.setClearColor(0xffaaff, 0);
   }, []);
 
   return null;
 }
 
-function World(props: WorldProps) {
+export function World(props: WorldProps) {
   const { globeConfig } = props;
   const scene = new Scene();
   scene.fog = new Fog(0xffffff, 400, 2000);
@@ -181,58 +166,11 @@ function World(props: WorldProps) {
     <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 180, 1800)}>
       <WebGLRendererConfig />
       <ambientLight color={globeConfig.ambientLight} intensity={0.6} />
-      <directionalLight
-        color={globeConfig.directionalLeftLight}
-        position={new Vector3(-400, 100, 400)}
-      />
-      <directionalLight
-        color={globeConfig.directionalTopLight}
-        position={new Vector3(-200, 500, 200)}
-      />
-      <pointLight
-        color={globeConfig.pointLight}
-        position={new Vector3(-200, 500, 200)}
-        intensity={0.8}
-      />
+      <directionalLight color={globeConfig.directionalLeftLight} position={new Vector3(-400, 100, 400)} />
+      <directionalLight color={globeConfig.directionalTopLight} position={new Vector3(-200, 500, 200)} />
+      <pointLight color={globeConfig.pointLight} position={new Vector3(-200, 500, 200)} intensity={0.8} />
       <Globe {...props} />
-      <OrbitControls
-        enablePan={false}
-        enableZoom={false}
-        minDistance={cameraZ}
-        maxDistance={cameraZ}
-        autoRotateSpeed={1}
-        autoRotate={true}
-        minPolarAngle={Math.PI / 3.5}
-        maxPolarAngle={Math.PI - Math.PI / 3}
-      />
+      <OrbitControls enablePan={false} enableZoom={false} minDistance={cameraZ} maxDistance={cameraZ} autoRotate autoRotateSpeed={1} minPolarAngle={Math.PI / 3.5} maxPolarAngle={Math.PI - Math.PI / 3} />
     </Canvas>
   );
 }
-
-// Utility Functions
-function hexToRgb(hex: string) {
-  var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-    return r + r + g + g + b + b;
-  });
-
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : null;
-}
-
-function genRandomNumbers(min: number, max: number, count: number) {
-  const arr = [];
-  while (arr.length < count) {
-    const r = Math.floor(Math.random() * (max - min)) + min;
-    if (arr.indexOf(r) === -1) arr.push(r);
-  }
-  return arr;
-}
-
-export default dynamic(() => Promise.resolve(World), { ssr: false });
