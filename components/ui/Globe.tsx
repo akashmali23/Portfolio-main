@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Ensures this file runs only on the client side
 import { useEffect, useRef, useState } from "react";
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
 import ThreeGlobe from "three-globe";
@@ -14,10 +14,9 @@ declare module "@react-three/fiber" {
 
 extend({ ThreeGlobe });
 
-const RING_PROPAGATION_SPEED = 3;
-const aspect = 1.2;
-const cameraZ = 300;
+const isClient = typeof window !== "undefined"; // Check if running in the browser
 
+// ✅ Define type for position data
 type Position = {
   order: number;
   startLat: number;
@@ -28,6 +27,7 @@ type Position = {
   color: string;
 };
 
+// ✅ Define type for globe configuration
 export type GlobeConfig = {
   pointSize?: number;
   globeColor?: string;
@@ -54,52 +54,24 @@ export type GlobeConfig = {
   autoRotateSpeed?: number;
 };
 
+// ✅ Define props for the Globe component
 interface WorldProps {
   globeConfig: GlobeConfig;
   data: Position[];
 }
 
-let numbersOfRings = [0];
-
 export function Globe({ globeConfig, data }: WorldProps) {
-  const [globeData, setGlobeData] = useState<
-    | {
-        size: number;
-        order: number;
-        color: (t: number) => string;
-        lat: number;
-        lng: number;
-      }[]
-    | null
-  >(null);
-
   const globeRef = useRef<ThreeGlobe | null>(null);
 
-  const defaultProps = {
-    pointSize: 1,
-    atmosphereColor: "#ffffff",
-    showAtmosphere: true,
-    atmosphereAltitude: 0.1,
-    polygonColor: "rgba(255,255,255,0.7)",
-    globeColor: "#1d072e",
-    emissive: "#000000",
-    emissiveIntensity: 0.1,
-    shininess: 0.9,
-    arcTime: 2000,
-    arcLength: 0.9,
-    rings: 1,
-    maxRings: 3,
-    ...globeConfig,
-  };
-
   useEffect(() => {
-    if (typeof window === "undefined") return; // Prevent SSR errors
+    if (!isClient) return; // Prevent SSR errors
 
     if (!globeRef.current) {
       globeRef.current = new ThreeGlobe();
     }
-    _buildData();
+    
     _buildMaterial();
+    _buildData();
   }, []);
 
   const _buildMaterial = () => {
@@ -111,8 +83,9 @@ export function Globe({ globeConfig, data }: WorldProps) {
       emissiveIntensity: number;
       shininess: number;
     };
-    globeMaterial.color = new Color(globeConfig.globeColor);
-    globeMaterial.emissive = new Color(globeConfig.emissive);
+
+    globeMaterial.color = new Color(globeConfig.globeColor || "#1d072e");
+    globeMaterial.emissive = new Color(globeConfig.emissive || "#000000");
     globeMaterial.emissiveIntensity = globeConfig.emissiveIntensity || 0.1;
     globeMaterial.shininess = globeConfig.shininess || 0.9;
   };
@@ -124,53 +97,24 @@ export function Globe({ globeConfig, data }: WorldProps) {
       .hexPolygonsData(countries.features)
       .hexPolygonResolution(3)
       .hexPolygonMargin(0.7)
-      .showAtmosphere(defaultProps.showAtmosphere)
-      .atmosphereColor(defaultProps.atmosphereColor)
-      .atmosphereAltitude(defaultProps.atmosphereAltitude)
-      .hexPolygonColor(() => defaultProps.polygonColor);
-
-    startAnimation();
-  };
-
-  const startAnimation = () => {
-    if (!globeRef.current) return;
-
-    globeRef.current
-      .arcsData(data)
-      .arcDashAnimateTime(defaultProps.arcTime);
-
-    globeRef.current.pointsData(data).pointsMerge(true).pointAltitude(0.0);
+      .showAtmosphere(true)
+      .atmosphereColor("#ffffff")
+      .atmosphereAltitude(0.1)
+      .hexPolygonColor(() => "rgba(255,255,255,0.7)");
   };
 
   return <>{globeRef.current && <primitive object={globeRef.current} />}</>;
 }
 
-export function WebGLRendererConfig() {
-  const { gl, size } = useThree();
-
-  useEffect(() => {
-    gl.setPixelRatio(window.devicePixelRatio);
-    gl.setSize(size.width, size.height);
-    gl.setClearColor(0xffaaff, 0);
-  }, []);
-
-  return null;
-}
-
+// ✅ Ensure World uses proper props and prevents SSR issues
 export function World(props: WorldProps) {
-  const { globeConfig } = props;
-  const scene = new Scene();
-  scene.fog = new Fog(0xffffff, 400, 2000);
+  if (!isClient) return null; // Prevent SSR errors
 
   return (
-    <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 180, 1800)}>
-      <WebGLRendererConfig />
-      <ambientLight color={globeConfig.ambientLight} intensity={0.6} />
-      <directionalLight color={globeConfig.directionalLeftLight} position={new Vector3(-400, 100, 400)} />
-      <directionalLight color={globeConfig.directionalTopLight} position={new Vector3(-200, 500, 200)} />
-      <pointLight color={globeConfig.pointLight} position={new Vector3(-200, 500, 200)} intensity={0.8} />
+    <Canvas>
+      <ambientLight intensity={0.5} />
+      <OrbitControls />
       <Globe {...props} />
-      <OrbitControls enablePan={false} enableZoom={false} minDistance={cameraZ} maxDistance={cameraZ} autoRotate autoRotateSpeed={1} minPolarAngle={Math.PI / 3.5} maxPolarAngle={Math.PI - Math.PI / 3} />
     </Canvas>
   );
 }
