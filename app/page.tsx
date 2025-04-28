@@ -1,6 +1,8 @@
 "use client";
 
 import { navItems } from "@/data";
+import dynamic from "next/dynamic"; // ✅ ADD
+
 import Hero from "@/components/Hero";
 import Grid from "@/components/Grid";
 import Footer from "@/components/Footer";
@@ -8,21 +10,17 @@ import Clients from "@/components/Clients";
 import Approach from "@/components/Approach";
 import Experience from "@/components/Experience";
 import RecentProjects from "@/components/RecentProjects";
-import { FloatingNav } from "@/components/ui/FloatingNavbar";
 
-import { useEffect, useState } from "react"; // ✅ add
+// ✅ DYNAMIC IMPORT FLOATINGNAV (ssr: false)
+const FloatingNav = dynamic(() => import("@/components/ui/FloatingNavbar"), {
+  ssr: false,
+});
 
 const Home = () => {
-  const [isMounted, setIsMounted] = useState(false); // ✅
-
-  useEffect(() => {
-    setIsMounted(true); // ✅ only run on client
-  }, []);
-
   return (
     <main className="relative bg-black-100 flex justify-center items-center flex-col overflow-hidden mx-auto sm:px-10 px-5">
       <div className="max-w-7xl w-full">
-        {isMounted && <FloatingNav navItems={navItems} />} {/* ✅ */}
+        <FloatingNav navItems={navItems} /> {/* ✅ SAFE NOW */}
         <Hero />
         <Grid />
         <RecentProjects />
