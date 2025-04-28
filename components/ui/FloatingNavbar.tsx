@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Ensure useState and useEffect are imported
 import {
   motion,
   AnimatePresence,
@@ -22,24 +22,30 @@ export const FloatingNav = ({
   className?: string;
 }) => {
   const [visible, setVisible] = useState(true);
-  const { scrollYProgress } = useScroll(); // can be called at top level
 
-  useMotionValueEvent(scrollYProgress, "change", (current) => {
-    if (typeof current !== "number") return;
+  // Hook for tracking scroll
+  const { scrollYProgress } = useScroll(); 
 
-    const previous = scrollYProgress.getPrevious() ?? 0;
-    const direction = current - previous;
+  useEffect(() => {
+    // On mount, we define how to handle scroll event using scrollYProgress.
+    const handleScroll = () => {
+      const current = scrollYProgress.get();
+      const previous = scrollYProgress.getPrevious() ?? 0;
+      const direction = current - previous;
 
-    if (scrollYProgress.get() < 0.05) {
-      setVisible(true);
-    } else {
-      if (direction < 0) {
+      if (current < 0.05) {
         setVisible(true);
       } else {
-        setVisible(false);
+        setVisible(direction < 0);
       }
-    }
-  });
+    };
+
+    // Listen to scroll changes
+    const unsubscribe = scrollYProgress.onChange(handleScroll);
+
+    // Cleanup listener on component unmount
+    return () => unsubscribe();
+  }, [scrollYProgress]); // Ensure this effect only runs when scrollYProgress changes
 
   return (
     <AnimatePresence mode="wait">
