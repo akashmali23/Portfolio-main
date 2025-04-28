@@ -1,4 +1,5 @@
-import dynamic from "next/dynamic";
+"use client";
+
 import { navItems } from "@/data";
 
 import Hero from "@/components/Hero";
@@ -8,12 +9,7 @@ import Clients from "@/components/Clients";
 import Approach from "@/components/Approach";
 import Experience from "@/components/Experience";
 import RecentProjects from "@/components/RecentProjects";
-
-// ✅ Tell dynamic what props FloatingNav expects
-const FloatingNav = dynamic(
-  () => import("@/components/ui/FloatingNavbar").then(mod => mod.FloatingNav), // 👈 important
-  { ssr: false }
-);
+import { FloatingNav } from "@/components/ui/FloatingNavbar";
 
 const Home = () => {
   return (
