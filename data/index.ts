@@ -100,7 +100,7 @@ export const projects = [
     des: "A animated E-com site used by an company for their Prodcuts store",
     img: "/p4.svg",
     iconLists: ["/re.svg", "/tail.svg", "/ts.svg", "/three.svg", "/gsap.svg"],
-    link: "https://snappee.store",
+    link: "https://www.snappee.store/?page=1",
   },
 ];
 
